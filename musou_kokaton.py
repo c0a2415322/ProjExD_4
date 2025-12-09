@@ -243,6 +243,32 @@ class EMP(pg.sprite.Sprite):
         if self.life < 0:
             self.kill()
 
+
+class shield(pg.sprite.Sprite):
+    """
+    スコアをコストに向いている方向へ防御癖を展開するクラス
+    コスト：50
+    """
+    def __init__(self, bird, life = 400):
+        super().__init__()
+        w, h = 20, bird.rect.height * 2
+        self.image = pg.Surface((w, h))
+        pg.draw.rect(self.image, (0, 0, 255), (0, 0, w, h))
+        vx, vy = bird.dire
+        angel = math.degrees(math.atan2(vy, vx))
+        self.image = pg.transform.rotozoom(self.image, angel, 1.0)
+        self.rect = self.image.get_rect()
+        offset = max(bird.rect.width, bird.rect.height)
+        self.rect.centerx = bird.rect.centerx + vx * offset
+        self.rect.centery = bird.rect.centery + vy * offset
+        self.rect.center = (self.rect.centerx, self.rect.centery)
+        self.life = life
+
+    def update(self):
+        self.life -= 1
+        if self.life < 0:
+            self.kill()
+
 class Gravity(pg.sprite.Sprite):
     """
     重力場（半透明の黒い矩形）に関するクラス
@@ -276,6 +302,7 @@ def main():
     emps = pg.sprite.Group()
 
     gravities = pg.sprite.Group()
+    shields = pg.sprite.Group()
 
     tmr = 0
     clock = pg.time.Clock()
@@ -295,6 +322,10 @@ def main():
             if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and score.value >=200:
                 score.value -= 200
                 gravities.add(Gravity(400))
+            if event.type == pg.KEYDOWN and event.key == pg.K_s:
+                if score.value >= 50 and len(shields) == 0:
+                    score.value -= 50
+                    shields.add(shield(bird, 400))
         screen.blit(bg_img, [0, 0])
 
         if tmr % 200 == 0:
@@ -335,6 +366,12 @@ def main():
                 emy.kill()
                 score.value += 10
 
+        
+        for bomb in pg.sprite.groupcollide(bombs, shields, True, False).keys():
+            exps.add(Explosion(bomb, 50))
+        
+        shields.draw(screen)
+        shields.update()
         bird.update(key_lst, screen)
         beams.update()
         beams.draw(screen)
