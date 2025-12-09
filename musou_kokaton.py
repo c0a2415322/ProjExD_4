@@ -218,20 +218,17 @@ class Score:
 
 class Gravity(pg.sprite.Sprite):
     """
-    重力場に関するクラス
+    重力場（半透明の黒い矩形）に関するクラス
+    ※写真の手順どおりに実装した版
     """
     def __init__(self, life: int):
         super().__init__()
         self.life = life
         self.image = pg.Surface((WIDTH, HEIGHT))
-        self.image.set_alpha(100)
-        self.image.fill((0, 0, 0))
+        pg.draw.rect(self.image,(0, 0, 0),(0, 0, WIDTH, HEIGHT))
+        self.image.set_alpha(128)
         self.rect = self.image.get_rect()
 
-    def update(self):
-        self.life -= 1
-        if self.life < 0:
-            self.kill()
 
 
 def main():
@@ -258,7 +255,7 @@ def main():
                 return 0
 
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_RETURN and score.value >= 200:
+                if event.key == pg.K_RETURN and score.value >=200:
                     score.value -= 200
                     gravities.add(Gravity(400))
 
